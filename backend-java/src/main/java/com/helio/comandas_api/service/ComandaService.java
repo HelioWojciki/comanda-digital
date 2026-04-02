@@ -7,11 +7,15 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ComandaService {
-    public String salvar(Comanda comanda) throws Exception {
-        Firestore db = FirestoreClient.getFirestore();
-        var docRef = db.collection("comandas").document();
-        comanda.setId(docRef.getId());
-        docRef.set(comanda).get();
-        return "Sucesso! ID: " + comanda.getId();
+    public String salvar(Comanda comanda) {
+        try {
+            Firestore db = FirestoreClient.getFirestore();
+            var docRef = db.collection("comandas").document();
+            comanda.setId(docRef.getId());
+            docRef.set(comanda).get();
+            return comanda.getId();
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao salvar no Firebase: " + e.getMessage());
+        }
     }
 }
