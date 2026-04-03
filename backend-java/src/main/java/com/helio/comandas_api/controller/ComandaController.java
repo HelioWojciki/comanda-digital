@@ -3,6 +3,7 @@ package com.helio.comandas_api.controller;
 import com.helio.comandas_api.model.Comanda;
 import com.helio.comandas_api.service.ComandaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,7 +26,7 @@ public class ComandaController {
         String idGerado = comandaService.salvar(comandaProcessada);
         comandaProcessada.setId(idGerado);
 
-        return ResponseEntity.status(201).body(comandaProcessada);
+        return ResponseEntity.status(HttpStatus.CREATED).body(comandaProcessada);
     }
 
     @GetMapping
