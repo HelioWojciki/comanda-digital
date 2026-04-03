@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/comandas")
 public class ComandaController {
@@ -24,5 +26,16 @@ public class ComandaController {
         comandaProcessada.setId(idGerado);
 
         return ResponseEntity.status(201).body(comandaProcessada);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Comanda>> listar() {
+        List<Comanda> lista = comandaService.listarTodos();
+
+        if (lista.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(lista);
     }
 }
