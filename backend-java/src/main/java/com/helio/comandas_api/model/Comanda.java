@@ -1,5 +1,6 @@
 package com.helio.comandas_api.model;
 
+import com.google.cloud.firestore.annotation.ServerTimestamp;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -15,6 +16,8 @@ public class Comanda {
     private String nomeCliente;
     private double valorTotal;
     private boolean aberta;
+
+    @ServerTimestamp // aguarda resposta do servidor
     private Date dataCriacao;
 
     // mesmo que o Firebase use o construtor vazio, nunca será null
