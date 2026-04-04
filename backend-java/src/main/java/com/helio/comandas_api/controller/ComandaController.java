@@ -59,4 +59,10 @@ public class ComandaController {
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> atualizar(@PathVariable String id, @RequestBody Comanda comanda) {
+        comandaService.atualizar(id, comanda);
+        return ResponseEntity.noContent().build();
+    }
+
 }
