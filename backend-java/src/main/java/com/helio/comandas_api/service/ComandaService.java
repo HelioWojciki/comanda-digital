@@ -1,12 +1,10 @@
 package com.helio.comandas_api.service;
 
 import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.QueryDocumentSnapshot;
-import com.google.cloud.firestore.QuerySnapshot;
-import com.google.cloud.firestore.WriteResult;
+import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
 import com.helio.comandas_api.model.Comanda;
+import com.helio.comandas_api.model.ItemComanda;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -73,6 +71,25 @@ public class ComandaService {
             query.get();
         } catch (Exception e) {
             throw new RuntimeException("Erro ao deletar a comanda: " + e.getMessage());
+        }
+    }
+
+    public void atualizar(String id, Comanda comandaAtualizada) {
+        try {
+            Firestore db = FirestoreClient.getFirestore();
+
+            DocumentReference docRef = db.collection("comandas").document(id);
+
+            ApiFuture<WriteResult> query = docRef.update(
+                    "nomeCliente", comandaAtualizada.getNomeCliente(),
+                    "aberta", comandaAtualizada.isAberta(),
+                    "itens", comandaAtualizada.getItens()
+            );
+
+            query.get();
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
