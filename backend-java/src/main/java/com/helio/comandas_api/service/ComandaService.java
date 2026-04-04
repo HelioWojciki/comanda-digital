@@ -2,15 +2,13 @@ package com.helio.comandas_api.service;
 
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.Query;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
+import com.google.cloud.firestore.WriteResult;
 import com.google.firebase.cloud.FirestoreClient;
 import com.helio.comandas_api.model.Comanda;
-import org.checkerframework.checker.units.qual.C;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -66,5 +64,16 @@ public class ComandaService {
         }
     }
 
+    public void deletar(String id) {
+        try {
+            Firestore db = FirestoreClient.getFirestore();
+
+            ApiFuture<WriteResult> query = db.collection("comandas").document(id).delete();
+
+            query.get();
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao deletar a comanda: " + e.getMessage());
+        }
+    }
 
 }

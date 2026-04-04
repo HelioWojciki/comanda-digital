@@ -50,4 +50,13 @@ public class ComandaController {
 
         return ResponseEntity.ok(lista);
     }
+
+    // aplicado o princípio da idempotência
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletar(@PathVariable String id) {
+        comandaService.deletar(id);
+
+        return ResponseEntity.noContent().build();
+    }
+
 }
