@@ -7,6 +7,7 @@ import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.firebase.cloud.FirestoreClient;
 import com.helio.comandas_api.model.Comanda;
+import org.checkerframework.checker.units.qual.C;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -44,4 +45,26 @@ public class ComandaService {
             throw new RuntimeException("Erro ao listar todas as comandas do Firebase: " + e.getMessage());
         }
     }
+
+    public List<Comanda> listarAbertas() {
+        try {
+            Firestore db = FirestoreClient.getFirestore();
+
+            ApiFuture<QuerySnapshot> query = db.collection("comandas")
+                    .whereEqualTo("aberta", true)
+                    .get();
+
+            QuerySnapshot querySnapshot = query.get();
+            List<QueryDocumentSnapshot> documentos = querySnapshot.getDocuments();
+
+            return documentos.stream()
+                    .map(doc -> doc.toObject(Comanda.class))
+                    .collect(Collectors.toList());
+
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao listar as comandas abertas: " + e.getMessage());
+        }
+    }
+
+
 }
