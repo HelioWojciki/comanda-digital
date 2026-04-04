@@ -39,4 +39,15 @@ public class ComandaController {
 
         return ResponseEntity.ok(lista);
     }
+
+    @GetMapping("/abertas")
+    public ResponseEntity<List<Comanda>> listarAbertas() {
+        List<Comanda> lista = comandaService.listarAbertas();
+
+        if (lista.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(lista);
+    }
 }
