@@ -1,6 +1,9 @@
 package com.helio.comandas_api.model;
 
 import com.google.cloud.firestore.annotation.ServerTimestamp;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -13,6 +16,7 @@ import java.util.List;
 public class Comanda {
 
     private String id;
+    @NotBlank(message = "O nome do cliente na comanda é obrigatório")
     private String nomeCliente;
     private double valorTotal;
     private boolean aberta;
@@ -21,6 +25,8 @@ public class Comanda {
     private Date dataCriacao;
 
     // mesmo que o Firebase use o construtor vazio, nunca será null
+    @NotEmpty
+    @Valid
     private List<ItemComanda> itens = new ArrayList<>();
 
     public Comanda (String nomeCliente){
