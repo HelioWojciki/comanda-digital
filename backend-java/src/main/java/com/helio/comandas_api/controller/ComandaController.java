@@ -2,6 +2,7 @@ package com.helio.comandas_api.controller;
 
 import com.helio.comandas_api.model.Comanda;
 import com.helio.comandas_api.service.ComandaService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +17,7 @@ public class ComandaController {
     private ComandaService comandaService;
 
     @PostMapping
-    public ResponseEntity<Comanda> salvar(@RequestBody Comanda novaComanda) {
+    public ResponseEntity<Comanda> salvar(@Valid @RequestBody Comanda novaComanda) {
         Comanda comandaProcessada = new Comanda(novaComanda.getNomeCliente());
 
         if (novaComanda.getItens() != null) {
