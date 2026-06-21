@@ -9,7 +9,13 @@ export default function ComandasPage() {
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
-    api.get('/comandas')
+    api.get('/comandas', {
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Progma': 'no-cache',
+        'Expires': '0'
+      }
+    })
       .then((response) => {
         setComandas(response.data);
         setCarregando(false);

@@ -1,9 +1,10 @@
 // Definição da estrutura da Comanda
 export interface Comanda {
-  id: number;
-  mesa: number;
+  id: string;
+  mesa?: number;
   nomeCliente: string;
-  pago: boolean;
+  aberta: boolean;
+  valorTotal: number
 }
 
 interface CardComandaProps {
@@ -12,7 +13,7 @@ interface CardComandaProps {
 
 /**
  * Componente visual que renderiza as info resumidas de uma comanda.
- * * @param comanda Objeto contendo os dados atuais vindos do Java (id, nomeCliente, pago).
+ * * @param comanda Objeto contendo os dados atuais vindos do Java (id, nomeCliente, valorTotal, aberta).
  * @returns Um "card" estilizado com Tailwind.
  * * TODO: Incluir o atributo 'mesa' no futuro na interface e no layout assim que o backend Java/Banco de dados for atualizado.
  */
@@ -24,9 +25,9 @@ export default function CardComanda({ comanda }: CardComandaProps) {
         <p className="text-sm text-gray-500">Cliente: {comanda.nomeCliente}</p>
       </div>
       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-        comanda.pago ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+        comanda.aberta ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
       }`}>
-        {comanda.pago ? 'Pago' : 'Aberto'}
+        {comanda.aberta ? 'Aberto' : 'Pago'}
       </span>
     </div>
   );
