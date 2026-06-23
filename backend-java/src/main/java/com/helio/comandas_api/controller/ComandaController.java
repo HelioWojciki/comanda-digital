@@ -18,7 +18,7 @@ public class ComandaController {
 
     @PostMapping
     public ResponseEntity<Comanda> salvar(@Valid @RequestBody Comanda novaComanda) {
-        Comanda comandaProcessada = new Comanda(novaComanda.getNomeCliente());
+        Comanda comandaProcessada = new Comanda(novaComanda.getNomeCliente(), novaComanda.getMesa());
 
         if (novaComanda.getItens() != null) {
             novaComanda.getItens().forEach(comandaProcessada::adicionarItem);
