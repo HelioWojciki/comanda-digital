@@ -20,6 +20,7 @@ public class Comanda {
     private String nomeCliente;
     private double valorTotal;
     private boolean aberta;
+    private int mesa;
 
     @ServerTimestamp // aguarda resposta do servidor
     private Date dataCriacao;
@@ -29,11 +30,12 @@ public class Comanda {
     @Valid
     private List<ItemComanda> itens = new ArrayList<>();
 
-    public Comanda (String nomeCliente){
+    public Comanda (String nomeCliente, int mesa){
         this.nomeCliente = nomeCliente;
         this.dataCriacao = new Date();
         this.aberta = true;
         this.valorTotal = 0.0;
+        this.mesa = mesa;
     }
 
     public void adicionarItem (ItemComanda item){
