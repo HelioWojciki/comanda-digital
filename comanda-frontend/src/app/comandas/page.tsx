@@ -36,7 +36,7 @@ export default function ComandasPage() {
     const novoStatusAberta = !comandaAlvo.aberta;
 
     // Dispara a atualização para o Java
-    api.patch(`/comandas/${id}`, {aberta: novoStatusAberta})
+    api.put(`/comandas/${id}`, {aberta: novoStatusAberta})
       .then(() => {
         setComandas(listaAtual => 
           listaAtual.map(c => c.id === id ? {...c, aberta: novoStatusAberta} : c)
