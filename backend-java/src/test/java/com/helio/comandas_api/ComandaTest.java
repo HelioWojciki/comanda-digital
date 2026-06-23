@@ -10,7 +10,7 @@ public class ComandaTest {
 
     @Test
     void deveSomarPrecoDosItensCorretamente() {
-        Comanda comanda = new Comanda("Pedro");
+        Comanda comanda = new Comanda("Pedro",1);
         ItemComanda item1 = new ItemComanda("Pizza", 10);
         ItemComanda item2 = new ItemComanda("Refrigerante", 5);
 
