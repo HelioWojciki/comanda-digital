@@ -77,19 +77,23 @@ public class ComandaService {
     public void atualizar(String id, Comanda comandaAtualizada) {
         try {
             Firestore db = FirestoreClient.getFirestore();
-
             DocumentReference docRef = db.collection("comandas").document(id);
 
-            ApiFuture<WriteResult> query = docRef.update(
-                    "nomeCliente", comandaAtualizada.getNomeCliente(),
-                    "aberta", comandaAtualizada.isAberta(),
-                    "itens", comandaAtualizada.getItens()
-            );
+            ApiFuture<WriteResult> queryStatus = docRef.update("aberta", comandaAtualizada.isAberta());
+            queryStatus.get(); // Aguarda a execução
 
-            query.get();
+            if (comandaAtualizada.getNomeCliente() != null) {
+                ApiFuture<WriteResult> queryNome = docRef.update("nomeCliente", comandaAtualizada.getNomeCliente());
+                queryNome.get();
+            }
+
+            if (comandaAtualizada.getItens() != null) {
+                ApiFuture<WriteResult> queryItens = docRef.update("itens", comandaAtualizada.getItens());
+                queryItens.get();
+            }
 
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Erro ao atualizar os dados no Firebase: " + e.getMessage());
         }
     }
 
