@@ -1,0 +1,34 @@
+// Definição da estrutura da Comanda
+export interface Comanda {
+  id: string;
+  mesa: number;
+  nomeCliente: string;
+  aberta: boolean;
+  valorTotal: number
+}
+
+interface CardComandaProps {
+  comanda: Comanda;
+  onVisualizar: (id: string) => void;
+}
+
+// Componente visual que renderiza as info resumidas de uma comanda.
+export default function CardComanda({ comanda, onVisualizar }: CardComandaProps) {
+  return (
+    <div 
+        onClick={() => onVisualizar(comanda.id)}
+        className="p-5 border border-gray-200 rounded-lg shadow-sm bg-white flex justify-between items-center cursor-pointer hover:border-blue-400 hover:shadow-md transition-all select-none">
+            <div>
+                {/* exibição da mesa e do valor total na tela. */}
+                <h2 className="text-xl font-semibold text-gray-700">Mesa {comanda.mesa}</h2>
+                <p className="text-sm text-gray-500">Cliente: {comanda.nomeCliente}</p>
+                <p className="text-sm font-medium text-green-600 mt-1">R$ {comanda.valorTotal.toFixed(2)}</p>
+            </div>
+            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                comanda.aberta ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+            }`}>
+                {comanda.aberta ? 'Aberto' : 'Pago'}
+            </span>
+    </div>
+  );
+}

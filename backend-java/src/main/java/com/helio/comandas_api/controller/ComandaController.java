@@ -18,7 +18,7 @@ public class ComandaController {
 
     @PostMapping
     public ResponseEntity<Comanda> salvar(@Valid @RequestBody Comanda novaComanda) {
-        Comanda comandaProcessada = new Comanda(novaComanda.getNomeCliente());
+        Comanda comandaProcessada = new Comanda(novaComanda.getNomeCliente(), novaComanda.getMesa());
 
         if (novaComanda.getItens() != null) {
             novaComanda.getItens().forEach(comandaProcessada::adicionarItem);
@@ -58,6 +58,17 @@ public class ComandaController {
         comandaService.deletar(id);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Comanda> buscarPorId(@PathVariable String id) {
+        Comanda comanda = comandaService.buscarPorId(id);
+
+        if (comanda == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(comanda); // Retorna a comanda com todos os itens
     }
 
     @PutMapping("/{id}")

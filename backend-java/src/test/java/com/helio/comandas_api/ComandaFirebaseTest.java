@@ -17,7 +17,7 @@ public class ComandaFirebaseTest {
 
     @Test
     void deveSalvarComandaComItemNoFirebase () throws Exception {
-        Comanda comanda = new Comanda("Teste Integração");
+        Comanda comanda = new Comanda("Teste Integração",1);
         comanda.adicionarItem(new ItemComanda("Salgado", 9.99));
         comanda.adicionarItem(new ItemComanda("Suco", 4.99));
 
