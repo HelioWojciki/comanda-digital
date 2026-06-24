@@ -69,6 +69,9 @@ export default function ModalVisualizarComanda({
         console.error("Erro ao processar pagamento:", error);
         alert("Não foi possível processar o pagamento.");
         setProcessandoPagamento(false);
+      })
+      .finally(() => {
+        setProcessandoPagamento(false);
       });
   };
 
