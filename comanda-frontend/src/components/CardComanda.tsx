@@ -9,20 +9,17 @@ export interface Comanda {
 
 interface CardComandaProps {
   comanda: Comanda;
-  onAlternarStatus: (id: string) => void;
+  onVisualizar: (id: string) => void;
 }
 
-/**
- * Componente visual que renderiza as info resumidas de uma comanda.
- * * @param comanda Objeto contendo os dados atuais vindos do Java (id, nomeCliente, valorTotal, aberta, mesa).
- * *@returns Um "card" estilizado com Tailwind.
- */
-export default function CardComanda({ comanda, onAlternarStatus }: CardComandaProps) {
+// Componente visual que renderiza as info resumidas de uma comanda.
+export default function CardComanda({ comanda, onVisualizar }: CardComandaProps) {
   return (
     <div 
-        onClick={() => onAlternarStatus(comanda.id)}
+        onClick={() => onVisualizar(comanda.id)}
         className="p-5 border border-gray-200 rounded-lg shadow-sm bg-white flex justify-between items-center cursor-pointer hover:border-blue-400 hover:shadow-md transition-all select-none">
             <div>
+                {/* exibição da mesa e do valor total na tela. */}
                 <h2 className="text-xl font-semibold text-gray-700">Mesa {comanda.mesa}</h2>
                 <p className="text-sm text-gray-500">Cliente: {comanda.nomeCliente}</p>
                 <p className="text-sm font-medium text-green-600 mt-1">R$ {comanda.valorTotal.toFixed(2)}</p>

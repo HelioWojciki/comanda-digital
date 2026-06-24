@@ -62,6 +62,23 @@ public class ComandaService {
         }
     }
 
+    public Comanda buscarPorId(String id) {
+        try {
+            Firestore db = FirestoreClient.getFirestore();
+            DocumentReference docRef = db.collection("comandas").document(id);
+            ApiFuture<DocumentSnapshot> future = docRef.get();
+            DocumentSnapshot document = future.get();
+
+            if (document.exists()) {
+                return document.toObject(Comanda.class);
+            } else {
+                return null; // Retorna nulo se o ID não existir no bd
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao buscar a comanda no Firebase: " + e.getMessage());
+        }
+    }
+
     public void deletar(String id) {
         try {
             Firestore db = FirestoreClient.getFirestore();

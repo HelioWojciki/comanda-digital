@@ -15,34 +15,58 @@ export default function ModalNovaComanda({
 }: ModalNovaComandaProps) {
   const [nomeCliente, setNomeCliente] = useState("");
   const [mesa, setMesa] = useState("");
-  const [nomeItem, setNomeItem] = useState("");
-  const [precoItem, setPrecoItem] = useState("");
   const [enviando, setEnviando] = useState(false);
+
+  const [itens, setItens] = useState([{ nome: "", preco: "" }]);
+
+  const adicionarNovoCampoItem = () => {
+    setItens([...itens, { nome: "", preco: "" }]);
+  };
+
+  const removerCampoItem = (indexParaRemover: number) => {
+    if (itens.length === 1) return;
+    const novaLista = itens.filter((_, index) => index !== indexParaRemover);
+    setItens(novaLista);
+  };
+
+  const atualizarValorItem = (
+    index: number,
+    campo: "nome" | "preco",
+    valor: string,
+  ) => {
+    const novaLista = [...itens];
+    novaLista[index][campo] = valor;
+    setItens(novaLista);
+  };
 
   // enviar o formulário
   const lidarComSalvarComanda = (e: React.SubmitEvent) => {
     e.preventDefault();
 
-    if (!nomeCliente.trim() || !mesa || !nomeItem.trim() || !precoItem) {
-      alert("Por favor, preencha todos os campos obrigatórios.");
+    if (!nomeCliente.trim() || !mesa) {
+      alert("Por favor, preencha o Nome e a Mesa.");
+      return;
+    }
+
+    const temItemVazio = itens.some((item) => !item.nome.trim() || !item.preco);
+    if (temItemVazio) {
+      alert("Por favor, preencha o nome e o preço de todos os itens da lista.");
       return;
     }
 
     setEnviando(true);
 
-    // montando JSON
+    // JSON agora envia a lista (array) mapeada para o Java
     const novaComandaParaSalvar = {
       nomeCliente: nomeCliente,
       mesa: Number(mesa),
-      itens: [
-        {
-          nome: nomeItem,
-          preco: parseFloat(precoItem.replace(",", ".")),
-        },
-      ],
+      itens: itens.map((item) => ({
+        nome: item.nome,
+        preco: parseFloat(item.preco.replace(",", ".")),
+      })),
     };
 
-    // Requisição POST para o backend Java
+    // Req. de POST
     api
       .post("/comandas", novaComandaParaSalvar)
       .then((response) => {
@@ -58,86 +82,92 @@ export default function ModalNovaComanda({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md border border-gray-100">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">
-          Abrir Nova Comanda
-        </h2>
+      <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-lg border border-gray-100 overflow-y-auto max-h-[90vh]">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">Abrir Nova Comanda</h2>
 
-        <form onSubmit={lidarComSalvarComanda} className="space-y-4">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Nome do Cliente
-            </label>
-            <input
-              type="text"
-              required
-              value={nomeCliente}
-              onChange={(e) => setNomeCliente(e.target.value)}
-              placeholder="Ex: Felipe Silva"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+        <form onSubmit={lidarComSalvarComanda} className="space-y-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Nome do Cliente *</label>
+              <input
+                type="text" required value={nomeCliente}
+                onChange={(e) => setNomeCliente(e.target.value)}
+                placeholder="Ex: Felipe Silva"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Número da Mesa *</label>
+              <input
+                type="number" required min="1" value={mesa}
+                onChange={(e) => setMesa(e.target.value)}
+                placeholder="Ex: 5"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
           </div>
 
+          <hr className="border-gray-200" />
+          
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Número da Mesa
-            </label>
-            <input
-              type="number"
-              value={mesa}
-              onChange={(e) => setMesa(e.target.value)}
-              placeholder="Ex: 5"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-gray-800">Pedido Inicial</h3>
+              <button 
+                type="button" 
+                onClick={adicionarNovoCampoItem}
+                className="text-sm bg-green-100 text-green-700 font-semibold px-3 py-1 rounded-md hover:bg-green-200 transition"
+              >
+                + Adicionar Outro Item
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {itens.map((item, index) => (
+                <div key={index} className="flex gap-2 items-start bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  <div className="flex-1">
+                    <input
+                      type="text" required placeholder="Nome do Produto"
+                      value={item.nome}
+                      onChange={(e) => atualizarValorItem(index, 'nome', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    />
+                  </div>
+                  <div className="w-28">
+                    <input
+                      type="text" required placeholder="R$ 0,00"
+                      value={item.preco}
+                      onChange={(e) => atualizarValorItem(index, 'preco', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    />
+                  </div>
+                  {/* Esconde o btn de apagar se for o último item da lista */}
+                  {itens.length > 1 && (
+                    <button 
+                      type="button" 
+                      onClick={() => removerCampoItem(index)}
+                      className="p-2 text-red-500 hover:bg-red-100 rounded-lg transition"
+                      title="Remover item"
+                    >
+                      X
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Item
-            </label>
-            <input
-              type="text"
-              required
-              value={nomeItem}
-              onChange={(e) => setNomeItem(e.target.value)}
-              placeholder="Ex: Água com gás"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Preço (R$)
-            </label>
-            <input
-              type="text"
-              required
-              value={precoItem}
-              onChange={(e) => setPrecoItem(e.target.value)}
-              placeholder="Ex: 5,00"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {/* fazero primeiro pedido */}
-          <hr className="border-gray-200 my-4" />
-          <h3 className="text-lg font-bold text-gray-800">Primeiro Pedido</h3>
-
-          <div className="flex justify-end space-x-3 pt-2">
+          <div className="flex justify-end space-x-3 pt-4 border-t">
             <button
-              type="button"
-              onClick={onFechar}
-              disabled={enviando}
-              className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
+              type="button" onClick={onFechar} disabled={enviando}
+              className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg"
             >
               Cancelar
             </button>
             <button
-              type="submit"
-              disabled={enviando}
-              className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow transition-all disabled:bg-gray-400"
+              type="submit" disabled={enviando}
+              className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow disabled:bg-gray-400"
             >
-              {enviando ? "Criando..." : "Criar Comanda"}
+              {enviando ? "A processar..." : "Abrir Comanda"}
             </button>
           </div>
         </form>
