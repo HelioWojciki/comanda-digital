@@ -60,6 +60,17 @@ public class ComandaController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Comanda> buscarPorId(@PathVariable String id) {
+        Comanda comanda = comandaService.buscarPorId(id);
+
+        if (comanda == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(comanda); // Retorna a comanda com todos os itens
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<Void> atualizar(@PathVariable String id, @RequestBody Comanda comanda) {
         comandaService.atualizar(id, comanda);

@@ -4,15 +4,18 @@ import { useEffect, useState } from "react";
 import api from "@/services/api";
 import CardComanda, { Comanda } from "@/components/CardComanda";
 import ModalNovaComanda from "@/components/ModalNovaComanda";
+import ModalVisualizarComanda from "@/components/ModalVisualizarComanda";
 
 export default function ComandasPage() {
   const [comandas, setComandas] = useState<Comanda[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [mostrarModal, setMostrarModal] = useState(false);
 
-  useEffect(() => {
+  const [comandaSelecionadaId, setComandaSelecionadaId] = useState<string | null>(null);
+
+  const carregarComandasDoServidor = () => {
     api
-      .get("/comandas", {
+      .get("/comandas/abertas", {
         headers: {
           "Cache-Control": "no-cache",
           Progma: "no-cache",
@@ -27,35 +30,15 @@ export default function ComandasPage() {
         console.error("Erro ao buscar comandas:", error);
         setCarregando(false);
       });
+  };
+
+  useEffect(() => {
+    carregarComandasDoServidor();
   }, []);
 
-  const lidarComAlternarStatus = (id: string) => {
-    // Procura a comanda clicada na lista atual do React
-    const comandaAlvo = comandas.find((c) => c.id === id);
-    if (!comandaAlvo) return;
-
-    // inverte o valor
-    const novoStatusAberta = !comandaAlvo.aberta;
-
-    const comandaAtualizada = {
-      ...comandaAlvo,
-      aberta: novoStatusAberta
-    };
-
-    // Dispara a atualização para o Java
-    api
-      .put(`/comandas/${id}`, comandaAtualizada)
-      .then(() => {
-        setComandas((listaAtual) =>
-          listaAtual.map((c) =>
-            c.id === id ? { ...c, aberta: novoStatusAberta } : c,
-          ),
-        );
-      })
-      .catch((error) => {
-        console.error("Erro ao atualizar no Java:", error);
-        alert("Não foi possível atualizar o status no servidor.");
-      });
+  // abrir os detalhes
+  const lidarComVisualizar = (id: string) => {
+    setComandaSelecionadaId(id);
   };
 
   const adicionarNovaComandaNaLista = (novaComanda: Comanda) => {
@@ -96,17 +79,26 @@ export default function ComandasPage() {
             <CardComanda
               key={comanda.id}
               comanda={comanda}
-              onAlternarStatus={lidarComAlternarStatus}
+              onVisualizar={lidarComVisualizar} 
             />
           ))}
         </div>
       )}
 
-      {/* se 'mostrarModal' for true ele aparece na tela */}
+      {/* Modal criar */}
       {mostrarModal && (
         <ModalNovaComanda 
           onFechar={() => setMostrarModal(false)}
           onComandaCriada={adicionarNovaComandaNaLista}
+        />
+      )}
+
+      {/* modal de visualizacao e pagamento */}
+      {comandaSelecionadaId && (
+        <ModalVisualizarComanda
+          comandaId={comandaSelecionadaId}
+          onFechar={() => setComandaSelecionadaId(null)}
+          onComandaAtualizada={carregarComandasDoServidor}
         />
       )}
 
