@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import api from "@/services/api";
-
-// Tipagem: Como esperamos receber os dados completos do Java
 interface ItemComanda {
   id?: string;
   nome: string;
@@ -32,16 +30,22 @@ export default function ModalVisualizarComanda({
 }: ModalVisualizarComandaProps) {
   const [comanda, setComanda] = useState<ComandaDetalhes | null>(null);
   const [carregando, setCarregando] = useState(true);
-  const [processandoPagamento, setProcessandoPagamento] = useState(false);
 
+  const [processandoPagamento, setProcessandoPagamento] = useState(false);
   const [novoItemNome, setNovoItemNome] = useState("");
   const [novoItemPreco, setNovoItemPreco] = useState("");
   const [adicionandoItem, setAdicionandoItem] = useState(false);
-
+  
   // buscar os detalhes dessa comanda específica
   const buscarDetalhesDaComanda = () => {
     api
-      .get(`/comandas/${comandaId}`)
+      .get(`/comandas/${comandaId}`, {
+        headers: {
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+      })
       .then((response) => {
         setComanda(response.data);
         setCarregando(false);
@@ -100,9 +104,13 @@ export default function ModalVisualizarComanda({
       preco: parseFloat(novoItemPreco.replace(",", ".")),
     };
 
+    const novaListaDeItens = [...comanda.itens, novoItem];
+    const novoValorTotal = novaListaDeItens.reduce((total, item) => total + Number(item.preco), 0);
+
     const comandaAtualizada = {
       ...comanda,
-      itens: [...comanda.itens, novoItem]
+      itens: novaListaDeItens,
+      valorTotal: novoValorTotal
     };
 
     api
@@ -110,7 +118,9 @@ export default function ModalVisualizarComanda({
       .then(() => {
         setNovoItemNome(""); 
         setNovoItemPreco(""); 
-        buscarDetalhesDaComanda(); 
+        
+        setComanda(comandaAtualizada); 
+        
         onComandaAtualizada(); 
       })
       .catch((error) => {
@@ -121,6 +131,7 @@ export default function ModalVisualizarComanda({
         setAdicionandoItem(false);
       });
   };
+
 
   return (
     <div 
