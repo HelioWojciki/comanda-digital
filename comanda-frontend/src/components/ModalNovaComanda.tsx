@@ -56,22 +56,28 @@ export default function ModalNovaComanda({
 
     setEnviando(true);
 
+    const itensFormatados = itens.map((item) => ({
+      nome: item.nome,
+      preco: parseFloat(item.preco.replace(",", ".")),
+    }));
+
+    // soma de todos os itens da lista inicial!
+    const valorTotalCalculado = itensFormatados.reduce((total, item) => total + item.preco, 0);
+
     // JSON agora envia a lista (array) mapeada para o Java
     const novaComandaParaSalvar = {
       nomeCliente: nomeCliente,
       mesa: Number(mesa),
-      itens: itens.map((item) => ({
-        nome: item.nome,
-        preco: parseFloat(item.preco.replace(",", ".")),
-      })),
+      itens: itensFormatados,
+      valorTotal: valorTotalCalculado,
     };
 
     // Req. de POST
     api
       .post("/comandas", novaComandaParaSalvar)
       .then((response) => {
-        onComandaCriada(response.data); // Coloca a nova comanda na tela
-        onFechar(); // Fecha a janela
+        onComandaCriada(response.data);
+        onFechar();
       })
       .catch((error) => {
         console.error("Erro ao salvar comanda:", error);
