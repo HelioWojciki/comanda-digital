@@ -109,6 +109,9 @@ public class ComandaService {
                 queryItens.get();
             }
 
+            ApiFuture<WriteResult> queryTotal = docRef.update("valorTotal", comandaAtualizada.getValorTotal());
+            queryTotal.get();
+
         } catch (Exception e) {
             throw new RuntimeException("Erro ao atualizar os dados no Firebase: " + e.getMessage());
         }
