@@ -5,6 +5,7 @@ import api from "@/services/api";
 import CardComanda, { Comanda } from "@/components/CardComanda";
 import ModalNovaComanda from "@/components/ModalNovaComanda";
 import ModalVisualizarComanda from "@/components/ModalVisualizarComanda";
+import DashboardMetricas from "@/components/DashboardMetricas";
 
 export default function ComandasPage() {
   const [comandas, setComandas] = useState<Comanda[]>([]);
@@ -12,10 +13,11 @@ export default function ComandasPage() {
   const [mostrarModal, setMostrarModal] = useState(false);
 
   const [comandaSelecionadaId, setComandaSelecionadaId] = useState<string | null>(null);
+  const [filtroAtivo, setFiltroAtivo] = useState<"abertas" | "pagas">("abertas");
 
   const carregarComandasDoServidor = () => {
     api
-      .get("/comandas/abertas", {
+      .get("/comandas", {
         headers: {
           "Cache-Control": "no-cache",
           Progma: "no-cache",
@@ -45,6 +47,10 @@ export default function ComandasPage() {
     setComandas((listaAtual) => [novaComanda, ...listaAtual]);
   };
 
+  const comandasAbertas = comandas.filter((c) => c.aberta);
+  const comandasPagas = comandas.filter((c) => !c.aberta);
+  const comandasParaExibir = filtroAtivo === "abertas" ? comandasAbertas : comandasPagas;
+
   return (
     <main className="p-10 max-w-4xl mx-auto">
 
@@ -65,17 +71,46 @@ export default function ComandasPage() {
         </button>
       </div>
 
+      {/* componente de métricas */}
+      {!carregando && <DashboardMetricas comandas={comandas} />}
+
+      {/* barra de abas para clicar e filtrar */}
+      <div className="flex border-b border-gray-200 my-6">
+        <button
+          onClick={() => setFiltroAtivo("abertas")}
+          className={`py-3 px-6 font-semibold text-sm border-b-2 transition-all ${
+            filtroAtivo === "abertas"
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          Mesas Ativas ({comandasAbertas.length})
+        </button>
+        <button
+          onClick={() => setFiltroAtivo("pagas")}
+          className={`py-3 px-6 font-semibold text-sm border-b-2 transition-all ${
+            filtroAtivo === "pagas"
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          Histórico (Pagas) ({comandasPagas.length})
+        </button>
+      </div>
+
       {carregando ? (
         <p className="text-blue-500 font-medium">
           Buscando dados no servidor Java...
         </p>
-      ) : comandas.length === 0 ? (
+      ) : comandasParaExibir.length === 0 ? (
         <p className="text-amber-600 bg-amber-50 p-4 rounded-md border border-amber-200">
-          Nenhuma comanda aberta no momento.
-        </p>
+          {filtroAtivo === "abertas" 
+            ? "Nenhuma comanda aberta no momento." 
+            : "O histórico de pagamentos está vazio."}
+        </p>        
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {comandas.map((comanda) => (
+          {comandasParaExibir.map((comanda) => (
             <CardComanda
               key={comanda.id}
               comanda={comanda}
