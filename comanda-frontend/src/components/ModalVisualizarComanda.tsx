@@ -35,6 +35,8 @@ export default function ModalVisualizarComanda({
   const [novoItemNome, setNovoItemNome] = useState("");
   const [novoItemPreco, setNovoItemPreco] = useState("");
   const [adicionandoItem, setAdicionandoItem] = useState(false);
+
+  const [removendoIndex, setRemovendoIndex] = useState<number | null>(null);
   
   // buscar os detalhes dessa comanda específica
   const buscarDetalhesDaComanda = () => {
@@ -131,7 +133,40 @@ export default function ModalVisualizarComanda({
         setAdicionandoItem(false);
       });
   };
+  
+  const lidarComRemoverItem = (indexParaRemover: number) => {
+    if (!comanda) return;
 
+    // 1. Filtramos a lista para remover apenas o item clicado
+    const novaListaDeItens = comanda.itens.filter((_, index) => index !== indexParaRemover);
+    
+    // 2. Recalculamos o total somando os itens restantes
+    const novoValorTotal = novaListaDeItens.reduce((total, item) => total + Number(item.preco), 0);
+
+    const comandaAtualizada = {
+      ...comanda,
+      itens: novaListaDeItens,
+      valorTotal: novoValorTotal
+    };
+
+    setRemovendoIndex(indexParaRemover);
+
+    // Envia pacote com o item removido para o Java salvar
+    api
+      .put(`/comandas/${comandaId}`, comandaAtualizada)
+      .then(() => {
+        // Atualiza com o novo total e lista
+        setComanda(comandaAtualizada);
+        onComandaAtualizada();
+      })
+      .catch((error) => {
+        console.error("Erro ao remover item:", error);
+        alert("Não foi possível remover o item.");
+      })
+      .finally(() => {
+        setRemovendoIndex(null);
+      });
+  };
 
   return (
     <div 
@@ -168,6 +203,20 @@ export default function ModalVisualizarComanda({
                 <div key={index} className="flex justify-between items-center bg-gray-50 p-2 rounded border border-gray-100">
                   <span className="text-gray-700">{item.nome}</span>
                   <span className="font-medium text-gray-800">R$ {item.preco.toFixed(2)}</span>
+
+                  {/* btn de remover */}
+                  {comanda.aberta && (
+                      <button
+                        type="button"
+                        onClick={() => lidarComRemoverItem(index)}
+                        disabled={removendoIndex !== null || processandoPagamento || adicionandoItem}
+                        className="text-red-500 hover:text-red-700 hover:bg-red-100 px-2 py-1 rounded-md text-sm transition-all disabled:opacity-40"
+                        title="Remover item"
+                      >
+                        {removendoIndex === index ? "..." : "✕"}
+                      </button>
+                    )}
+
                 </div>
               ))}
             </div>
