@@ -23,6 +23,13 @@ interface ModalVisualizarComandaProps {
   onComandaAtualizada: () => void; // Avisa a pg para atualizar depois de pagar
 }
 
+interface ItemAgrupado {
+  nome: string;
+  precoUnitario: number;
+  quantidade: number;
+  precoTotal: number;
+}
+
 export default function ModalVisualizarComanda({
   comandaId,
   onFechar,
@@ -63,6 +70,69 @@ export default function ModalVisualizarComanda({
     buscarDetalhesDaComanda();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [comandaId]);
+
+  const obterItensAgrupados = (itens: ItemComanda[]): ItemAgrupado[] => {
+    const mapa = new Map<string, ItemAgrupado>();
+
+    itens.forEach((item) => {
+      const chave = `${item.nome.trim().toLowerCase()}-${item.preco}`;
+      const itemExistente = mapa.get(chave);
+
+      if (itemExistente) {
+        itemExistente.quantidade += 1;
+        itemExistente.precoTotal = itemExistente.quantidade * itemExistente.precoUnitario;
+      } else {
+        mapa.set(chave, {
+          nome: item.nome,
+          precoUnitario: item.preco,
+          quantidade: 1,
+          precoTotal: item.preco,
+        });
+      }
+    });
+
+    return Array.from(mapa.values());
+  };
+
+  const lidarComAlterarQuantidade = (nome: string, preco: number, operacao: "aumentar" | "diminuir") => {
+    if (!comanda || adicionandoItem || processandoPagamento || removendoIndex !== null) return;
+
+    setAdicionandoItem(true);
+    const novaListaDeItens = [...comanda.itens];
+
+    if (operacao === "aumentar") {
+      novaListaDeItens.push({ nome, preco });
+    } else if (operacao === "diminuir") {
+      const index = novaListaDeItens.findIndex(
+        (item) => item.nome.trim().toLowerCase() === nome.trim().toLowerCase() && item.preco === preco
+      );
+      if (index !== -1) {
+        novaListaDeItens.splice(index, 1);
+      }
+    }
+
+    const novoValorTotal = novaListaDeItens.reduce((total, item) => total + Number(item.preco), 0);
+
+    const comandaAtualizada = {
+      ...comanda,
+      itens: novaListaDeItens,
+      valorTotal: novoValorTotal
+    };
+
+    api
+      .put(`/comandas/${comandaId}`, comandaAtualizada)
+      .then(() => {
+        setComanda(comandaAtualizada);
+        onComandaAtualizada();
+      })
+      .catch((error) => {
+        console.error("Erro ao alterar quantidade:", error);
+        alert("Não foi possível atualizar a quantidade.");
+      })
+      .finally(() => {
+        setAdicionandoItem(false);
+      });
+  };
 
   // funcao de pg, que altera status
   const lidarComPagamento = () => {
@@ -133,40 +203,8 @@ export default function ModalVisualizarComanda({
         setAdicionandoItem(false);
       });
   };
-  
-  const lidarComRemoverItem = (indexParaRemover: number) => {
-    if (!comanda) return;
 
-    // 1. Filtramos a lista para remover apenas o item clicado
-    const novaListaDeItens = comanda.itens.filter((_, index) => index !== indexParaRemover);
-    
-    // 2. Recalculamos o total somando os itens restantes
-    const novoValorTotal = novaListaDeItens.reduce((total, item) => total + Number(item.preco), 0);
-
-    const comandaAtualizada = {
-      ...comanda,
-      itens: novaListaDeItens,
-      valorTotal: novoValorTotal
-    };
-
-    setRemovendoIndex(indexParaRemover);
-
-    // Envia pacote com o item removido para o Java salvar
-    api
-      .put(`/comandas/${comandaId}`, comandaAtualizada)
-      .then(() => {
-        // Atualiza com o novo total e lista
-        setComanda(comandaAtualizada);
-        onComandaAtualizada();
-      })
-      .catch((error) => {
-        console.error("Erro ao remover item:", error);
-        alert("Não foi possível remover o item.");
-      })
-      .finally(() => {
-        setRemovendoIndex(null);
-      });
-  };
+  const itensParaRenderizar = comanda ? obterItensAgrupados(comanda.itens || []) : [];
 
   return (
     <div 
@@ -199,26 +237,53 @@ export default function ModalVisualizarComanda({
             
             {/* Lista de Itens Existentes */}
             <div className="space-y-2 mb-6 max-h-60 overflow-y-auto pr-2">
-              {comanda.itens?.map((item, index) => (
-                <div key={index} className="flex justify-between items-center bg-gray-50 p-2 rounded border border-gray-100">
-                  <span className="text-gray-700">{item.nome}</span>
-                  <span className="font-medium text-gray-800">R$ {item.preco.toFixed(2)}</span>
+              {itensParaRenderizar.length === 0 ? (
+                <p className="text-center text-gray-400 py-4 text-sm italic">Nenhum item consumido ainda.</p>
+              ) : (
+              
+                // mapea a lista tratada e desenha
+                itensParaRenderizar.map((item, index) => (
+                  <div key={index} className="flex justify-between items-center bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                    <div className="flex flex-col">
+                      <span className="text-gray-700 font-medium">{item.nome}</span>
+                      <span className="text-xs text-gray-400">R$ {item.precoUnitario.toFixed(2)} cada</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <span className="font-semibold text-gray-800">R$ {item.precoTotal.toFixed(2)}</span>
 
-                  {/* btn de remover */}
-                  {comanda.aberta && (
-                      <button
-                        type="button"
-                        onClick={() => lidarComRemoverItem(index)}
-                        disabled={removendoIndex !== null || processandoPagamento || adicionandoItem}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-100 px-2 py-1 rounded-md text-sm transition-all disabled:opacity-40"
-                        title="Remover item"
-                      >
-                        {removendoIndex === index ? "..." : "✕"}
-                      </button>
-                    )}
-
-                </div>
-              ))}
+                      {/* Controles de quantidade dos itens + e - */}
+                      {comanda.aberta && (
+                        <div className="flex items-center bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                          {/* btn(-) */}
+                          <button
+                            type="button"
+                            onClick={() => lidarComAlterarQuantidade(item.nome, item.precoUnitario, "diminuir")}
+                            disabled={removendoIndex !== null || processandoPagamento || adicionandoItem}
+                            className="px-2 py-0.5 text-red-500 hover:bg-red-50 active:bg-red-100 rounded-l-lg transition-all font-bold disabled:opacity-40"
+                          >
+                            -
+                          </button>
+                        
+                          <span className="px-1 text-xs font-bold text-gray-700 select-none min-w-[14px] text-center">
+                            {item.quantidade}
+                          </span>
+                          
+                          {/* btn(+) */}
+                          <button
+                            type="button"
+                            onClick={() => lidarComAlterarQuantidade(item.nome, item.precoUnitario, "aumentar")}
+                            disabled={removendoIndex !== null || processandoPagamento || adicionandoItem}
+                            className="px-2 py-0.5 text-green-600 hover:bg-green-50 active:bg-green-100 rounded-r-lg transition-all font-bold disabled:opacity-40"
+                          >
+                            +
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
 
             {comanda.aberta && (
