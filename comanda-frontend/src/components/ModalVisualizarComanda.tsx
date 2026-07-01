@@ -43,6 +43,8 @@ export default function ModalVisualizarComanda({
   const [novoItemPreco, setNovoItemPreco] = useState("");
   const [adicionandoItem, setAdicionandoItem] = useState(false);
 
+  const [excluindo, setExcluindo] = useState(false);
+
   const [removendoIndex, setRemovendoIndex] = useState<number | null>(null);
   
   // buscar os detalhes dessa comanda específica
@@ -131,6 +133,32 @@ export default function ModalVisualizarComanda({
       })
       .finally(() => {
         setAdicionandoItem(false);
+      });
+  };
+
+  const lidarComExcluirComanda = () => {
+    if (!comanda || excluindo || processandoPagamento || adicionandoItem) return;
+
+    const confirmou = window.confirm(
+      `Atenção! Tens a certeza de que desejas EXCLUIR permanentemente a comanda da Mesa ${comanda.mesa}? Esta ação não pode ser desfeita.`
+    );
+
+    if (!confirmou) return;
+
+    setExcluindo(true);
+
+    api
+      .delete(`/comandas/${comandaId}`)
+      .then(() => {
+        onComandaAtualizada();
+        onFechar(); 
+      })
+      .catch((error) => {
+        console.error("Erro ao excluir comanda:", error);
+        alert("Erro ao excluir comanda no servidor.");
+      })
+      .finally(() => {
+        setExcluindo(false);
       });
   };
 
@@ -319,26 +347,43 @@ export default function ModalVisualizarComanda({
               <span className="text-blue-900 font-bold text-2xl">R$ {comanda.valorTotal.toFixed(2)}</span>
             </div>
 
-            <div className="flex justify-end space-x-3 pt-2">
-              <button
-                type="button"
-                onClick={onFechar}
-                disabled={processandoPagamento || adicionandoItem}
-                className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-all disabled:opacity-50"
-              >
-                Fechar
-              </button>
+            <div className="flex justify-between items-center pt-2">
               
-              {comanda.aberta && (
+              {/* Btn excluir só aparece para comandas que estao abertas */}
+              {comanda.aberta ? (
                 <button
                   type="button"
-                  onClick={lidarComPagamento}
-                  disabled={processandoPagamento || adicionandoItem}
-                  className="px-4 py-2 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg shadow transition-all disabled:bg-gray-400"
+                  onClick={lidarComExcluirComanda}
+                  disabled={processandoPagamento || adicionandoItem || excluindo}
+                  className="text-sm font-semibold text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-2 rounded-lg transition-all disabled:opacity-40"
                 >
-                  {processandoPagamento ? "A processar..." : "Pagar Comanda"}
+                  {excluindo ? "A excluir..." : "Excluir Comanda"}
                 </button>
+              ) : (
+                <div />
               )}
+
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={onFechar}
+                  disabled={processandoPagamento || adicionandoItem || excluindo}
+                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-all disabled:opacity-50"
+                >
+                  Fechar
+                </button>
+                
+                {comanda.aberta && (
+                  <button
+                    type="button"
+                    onClick={lidarComPagamento}
+                    disabled={processandoPagamento || adicionandoItem || excluindo}
+                    className="px-4 py-2 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg shadow transition-all disabled:bg-gray-400"
+                  >
+                    {processandoPagamento ? "A processar..." : "Pagar Comanda"}
+                  </button>
+                )}
+              </div>
             </div>
           </>
         )}
